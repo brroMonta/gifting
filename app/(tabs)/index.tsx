@@ -44,22 +44,38 @@ export default function HomeScreen() {
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
         {/* Stats Cards */}
         <View style={styles.statsGrid}>
-          <View style={styles.statCard}>
+          <TouchableOpacity
+            style={styles.statCard}
+            onPress={() => router.push('/(tabs)/people' as any)}
+            activeOpacity={0.7}
+          >
             <Text style={styles.statValue}>{people.length}</Text>
             <Text style={styles.statLabel} numberOfLines={1}>People</Text>
-          </View>
-          <View style={styles.statCard}>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.statCard}
+            onPress={() => router.push('/(tabs)/events' as any)}
+            activeOpacity={0.7}
+          >
             <Text style={styles.statValue}>{upcomingEvents.length}</Text>
             <Text style={styles.statLabel} numberOfLines={1}>Upcoming</Text>
-          </View>
-          <View style={styles.statCard}>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.statCard}
+            onPress={() => router.push('/(tabs)/people' as any)}
+            activeOpacity={0.7}
+          >
             <Text style={styles.statValue}>{Object.keys(giftMaps).length}</Text>
             <Text style={styles.statLabel} numberOfLines={1}>Gift Maps</Text>
-          </View>
-          <View style={styles.statCard}>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.statCard}
+            onPress={() => router.push('/(tabs)/history' as any)}
+            activeOpacity={0.7}
+          >
             <Text style={styles.statValue}>{history.length}</Text>
             <Text style={styles.statLabel} numberOfLines={1}>History</Text>
-          </View>
+          </TouchableOpacity>
         </View>
 
         {/* Upcoming Events Section */}
