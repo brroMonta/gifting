@@ -177,6 +177,15 @@ export default function GiftMapScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Navigation Header */}
+      <View style={styles.navHeader}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <Text style={styles.backButtonText}>‹ Back</Text>
+        </TouchableOpacity>
+        <Text style={styles.navTitle}>Gift Map</Text>
+        <View style={styles.placeholder} />
+      </View>
+
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
         {/* Header */}
         <View style={styles.header}>
@@ -285,6 +294,35 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+  },
+  navHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: theme.spacing.xl,
+    paddingTop: 60,
+    paddingBottom: theme.spacing.lg,
+    backgroundColor: theme.colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.accent[500],
+    ...theme.shadows.sm,
+  },
+  backButton: {
+    paddingVertical: theme.spacing.sm,
+    minWidth: 60,
+  },
+  backButtonText: {
+    fontSize: 18,
+    color: theme.colors.primary[600],
+    fontWeight: '600',
+  },
+  navTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: theme.colors.text.primary,
+  },
+  placeholder: {
+    width: 60,
   },
   loadingContainer: {
     flex: 1,
