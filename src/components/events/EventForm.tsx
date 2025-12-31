@@ -1,11 +1,13 @@
 // EventForm Component - Form for adding/editing gift events
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Platform, KeyboardAvoidingView, ScrollView } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import { CreateGiftEventInput } from '../../types/giftEvent';
 import { EVENT_TYPES, EVENT_STATUSES } from '../../utils/constants';
+import { theme } from '../../styles/theme';
 
 interface EventFormData {
   personId: string;
@@ -53,9 +55,15 @@ export const EventForm: React.FC<EventFormProps> = ({
 
   const [selectedEventType, setSelectedEventType] = useState(initialData?.eventType || 'birthday');
   const [selectedStatus, setSelectedStatus] = useState(initialData?.status || 'idea');
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   return (
-    <View style={styles.form}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}
+    >
+      <ScrollView style={styles.scrollView} keyboardShouldPersistTaps="handled">
+        <View style={styles.form}>
       {/* Person Name (if not pre-filled) */}
       {!personId && (
         <Controller
@@ -110,29 +118,55 @@ export const EventForm: React.FC<EventFormProps> = ({
         </View>
       </View>
 
-      {/* Event Date - Simple text input for now */}
+      {/* Event Date - Calendar Picker */}
       <Controller
         control={control}
         name="eventDate"
         rules={{ required: 'Event date is required' }}
-        render={({ field: { onChange, onBlur, value } }) => (
-          <Input
-            label="Event Date *"
-            placeholder="YYYY-MM-DD"
-            value={value instanceof Date ? value.toISOString().split('T')[0] : value}
-            onChangeText={(text) => {
-              try {
-                const date = new Date(text);
-                if (!isNaN(date.getTime())) {
-                  onChange(date);
-                }
-              } catch (e) {
-                // Invalid date, ignore
-              }
-            }}
-            onBlur={onBlur}
-            error={errors.eventDate?.message}
-          />
+        render={({ field: { onChange, value } }) => (
+          <View style={styles.datePickerContainer}>
+            <Text style={styles.label}>Event Date *</Text>
+            <TouchableOpacity
+              style={styles.datePickerButton}
+              onPress={() => setShowDatePicker(true)}
+            >
+              <Text style={styles.datePickerText}>
+                {value instanceof Date ? value.toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                }) : 'Select Date'}
+              </Text>
+              <Text style={styles.datePickerIcon}>📅</Text>
+            </TouchableOpacity>
+            {(showDatePicker || Platform.OS === 'android') && (
+              <DateTimePicker
+                value={value instanceof Date ? value : new Date()}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                onChange={(event, selectedDate) => {
+                  if (Platform.OS === 'android') {
+                    setShowDatePicker(false);
+                  }
+                  if (selectedDate) {
+                    onChange(selectedDate);
+                  }
+                }}
+                minimumDate={new Date()}
+              />
+            )}
+            {showDatePicker && Platform.OS === 'ios' && (
+              <TouchableOpacity
+                style={styles.datePickerDone}
+                onPress={() => setShowDatePicker(false)}
+              >
+                <Text style={styles.datePickerDoneText}>Done</Text>
+              </TouchableOpacity>
+            )}
+            {errors.eventDate && (
+              <Text style={styles.errorText}>{errors.eventDate.message}</Text>
+            )}
+          </View>
         )}
       />
 
@@ -228,11 +262,19 @@ export const EventForm: React.FC<EventFormProps> = ({
           style={styles.button}
         />
       </View>
-    </View>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
   form: {
     padding: 20,
   },
@@ -242,8 +284,49 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1e293b',
+    color: theme.colors.text.primary,
     marginBottom: 8,
+  },
+  datePickerContainer: {
+    marginBottom: 20,
+  },
+  datePickerButton: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: theme.colors.surface,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderRadius: theme.borderRadius.md,
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.lg,
+    minHeight: 56,
+  },
+  datePickerText: {
+    fontSize: 16,
+    color: theme.colors.text.primary,
+    fontWeight: '400',
+  },
+  datePickerIcon: {
+    fontSize: 20,
+  },
+  datePickerDone: {
+    alignSelf: 'flex-end',
+    backgroundColor: theme.colors.primary[600],
+    paddingHorizontal: theme.spacing.xl,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: theme.borderRadius.md,
+    marginTop: theme.spacing.md,
+  },
+  datePickerDoneText: {
+    color: theme.colors.text.inverse,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  errorText: {
+    color: theme.colors.error[500],
+    fontSize: 13,
+    marginTop: theme.spacing.xs,
   },
   optionsRow: {
     flexDirection: 'row',
@@ -253,23 +336,23 @@ const styles = StyleSheet.create({
   optionButton: {
     paddingVertical: 8,
     paddingHorizontal: 16,
-    borderRadius: 8,
+    borderRadius: theme.borderRadius.md,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
-    backgroundColor: '#fff',
+    borderColor: theme.colors.border,
+    backgroundColor: theme.colors.surface,
   },
   optionButtonSelected: {
-    backgroundColor: '#6366f1',
-    borderColor: '#6366f1',
+    backgroundColor: theme.colors.primary[600],
+    borderColor: theme.colors.primary[600],
   },
   optionText: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#64748b',
+    color: theme.colors.text.secondary,
     textTransform: 'capitalize',
   },
   optionTextSelected: {
-    color: '#fff',
+    color: theme.colors.text.inverse,
   },
   notesInput: {
     height: 80,
@@ -288,29 +371,29 @@ const styles = StyleSheet.create({
   toggleLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1e293b',
+    color: theme.colors.text.primary,
     marginBottom: 4,
   },
   toggleDescription: {
     fontSize: 13,
-    color: '#64748b',
+    color: theme.colors.text.secondary,
   },
   toggle: {
     width: 51,
     height: 31,
     borderRadius: 16,
-    backgroundColor: '#e2e8f0',
+    backgroundColor: theme.colors.neutral[200],
     justifyContent: 'center',
     paddingHorizontal: 2,
   },
   toggleActive: {
-    backgroundColor: '#6366f1',
+    backgroundColor: theme.colors.primary[600],
   },
   toggleThumb: {
     width: 27,
     height: 27,
     borderRadius: 14,
-    backgroundColor: '#fff',
+    backgroundColor: theme.colors.surface,
   },
   toggleThumbActive: {
     marginLeft: 'auto',

@@ -15,6 +15,7 @@
   "description": "A cross-platform gifting reminder app",
   "dependencies": {
     "@expo/metro-runtime": "~6.1.2",
+    "@react-native-community/datetimepicker": "8.4.4",
     "date-fns": "^4.1.0",
     "expo": "^54.0.30",
     "expo-calendar": "~15.0.8",
