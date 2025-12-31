@@ -58,6 +58,7 @@ export class GiftMapRepository {
       id: itemId,
       name: item.name,
       url: item.url || null,
+      imageUrl: (item as any).imageUrl || null,
       notes: item.notes || null,
       isReserved: false,
       reservedAt: null,

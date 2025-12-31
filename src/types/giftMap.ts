@@ -4,6 +4,7 @@ export interface GiftMapItem {
   id: string;
   name: string;
   url: string | null;
+  imageUrl: string | null; // Extracted from URL metadata
   notes: string | null;
   isReserved: boolean;
   reservedAt: Date | null;

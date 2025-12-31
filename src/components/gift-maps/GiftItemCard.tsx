@@ -1,6 +1,6 @@
 // GiftItemCard Component - Display a gift item
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Linking } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Linking, Image } from 'react-native';
 import { GiftMapItem } from '../../types/giftMap';
 import { theme } from '../../styles/theme';
 
@@ -29,6 +29,15 @@ export const GiftItemCard: React.FC<GiftItemCardProps> = ({
 
   return (
     <View style={[styles.card, item.isReserved && styles.reservedCard]}>
+      {/* Image Preview */}
+      {item.imageUrl && (
+        <Image
+          source={{ uri: item.imageUrl }}
+          style={styles.itemImage}
+          resizeMode="cover"
+        />
+      )}
+
       <View style={styles.content}>
         <View style={styles.header}>
           <Text style={[styles.name, item.isReserved && styles.reservedText]}>
@@ -94,18 +103,24 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: theme.colors.surface,
     borderRadius: theme.borderRadius.xl,
-    padding: theme.spacing.lg,
     marginBottom: theme.spacing.md,
     ...theme.shadows.md,
     borderWidth: 1,
     borderColor: theme.colors.border,
+    overflow: 'hidden',
   },
   reservedCard: {
     backgroundColor: theme.colors.neutral[50],
     borderColor: theme.colors.neutral[200],
   },
+  itemImage: {
+    width: '100%',
+    height: 160,
+    backgroundColor: theme.colors.neutral[100],
+  },
   content: {
     flex: 1,
+    padding: theme.spacing.lg,
   },
   header: {
     flexDirection: 'row',
