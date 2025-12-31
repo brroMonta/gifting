@@ -46,19 +46,19 @@ export default function HomeScreen() {
         <View style={styles.statsGrid}>
           <View style={styles.statCard}>
             <Text style={styles.statValue}>{people.length}</Text>
-            <Text style={styles.statLabel}>People</Text>
+            <Text style={styles.statLabel} numberOfLines={1}>People</Text>
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statValue}>{upcomingEvents.length}</Text>
-            <Text style={styles.statLabel}>Upcoming</Text>
+            <Text style={styles.statLabel} numberOfLines={1}>Upcoming</Text>
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statValue}>{Object.keys(giftMaps).length}</Text>
-            <Text style={styles.statLabel}>Gift Maps</Text>
+            <Text style={styles.statLabel} numberOfLines={1}>Gift Maps</Text>
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statValue}>{history.length}</Text>
-            <Text style={styles.statLabel}>History</Text>
+            <Text style={styles.statLabel} numberOfLines={1}>History</Text>
           </View>
         </View>
 
@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    minWidth: '45%',
+    minWidth: '46%',
     backgroundColor: theme.colors.surface,
     borderRadius: theme.borderRadius.sm,
     padding: theme.spacing['2xl'],
@@ -220,6 +220,8 @@ const styles = StyleSheet.create({
   statLabel: {
     ...theme.typography.label,
     color: theme.colors.text.secondary,
+    textAlign: 'center',
+    width: '100%',
   },
   section: {
     marginBottom: theme.spacing['3xl'],
