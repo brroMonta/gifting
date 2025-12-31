@@ -148,14 +148,14 @@ const styles = StyleSheet.create({
   },
   headerGradient: {
     backgroundColor: theme.colors.primary[600],
-    paddingBottom: theme.spacing['3xl'],
+    paddingBottom: theme.spacing.xl,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.accent[500],
   },
   header: {
     paddingHorizontal: theme.spacing['2xl'],
-    paddingTop: 64,
-    paddingBottom: theme.spacing['2xl'],
+    paddingTop: 60,
+    paddingBottom: theme.spacing.lg,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -166,10 +166,12 @@ const styles = StyleSheet.create({
   greeting: {
     ...theme.typography.label,
     color: theme.colors.accent[400],
-    marginBottom: theme.spacing.sm,
+    marginBottom: 4,
   },
   userName: {
-    ...theme.typography.h1,
+    fontSize: 22,
+    fontWeight: '400',
+    letterSpacing: 0.5,
     color: theme.colors.text.inverse,
   },
   logoutButton: {
@@ -188,8 +190,8 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: theme.spacing['2xl'],
-    paddingTop: theme.spacing['3xl'],
-    marginTop: -theme.spacing['2xl'],
+    paddingTop: theme.spacing.xl,
+    marginTop: -theme.spacing.lg,
   },
   statsGrid: {
     flexDirection: 'row',
