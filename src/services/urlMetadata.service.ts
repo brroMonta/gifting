@@ -20,8 +20,9 @@ export async function fetchUrlMetadata(url: string): Promise<UrlMetadata | null>
       return null;
     }
 
-    // Use Microlink API (free tier: 50 req/day)
-    const apiUrl = `https://api.microlink.io?url=${encodeURIComponent(url)}`;
+    // Use Microlink API with options to get better product images
+    // palette=false saves bandwidth, screenshot=true ensures we get an image
+    const apiUrl = `https://api.microlink.io?url=${encodeURIComponent(url)}&palette=false&screenshot=true&meta=false`;
 
     const response = await fetch(apiUrl, {
       method: 'GET',
@@ -37,15 +38,44 @@ export async function fetchUrlMetadata(url: string): Promise<UrlMetadata | null>
 
     const data = await response.json();
 
-    if (!data.status === 'success' || !data.data) {
+    if (data.status !== 'success' || !data.data) {
       return null;
+    }
+
+    // Extract best image (prefer product images over logos)
+    let imageUrl = null;
+
+    // Priority 1: Use the main image (usually product image)
+    if (data.data.image?.url) {
+      const img = data.data.image.url;
+      // Filter out logos and small images
+      if (!isLogoImage(img) && !isTooSmall(data.data.image)) {
+        imageUrl = img;
+      }
+    }
+
+    // Priority 2: Try fetching HTML directly to parse og:image
+    if (!imageUrl) {
+      try {
+        const htmlMetadata = await fetchHtmlDirectly(url);
+        if (htmlMetadata?.image && !isLogoImage(htmlMetadata.image)) {
+          imageUrl = htmlMetadata.image;
+        }
+      } catch (e) {
+        // Fallback failed, continue
+      }
+    }
+
+    // Priority 3: Use screenshot as last resort (captures whole page)
+    if (!imageUrl && data.data.screenshot?.url) {
+      imageUrl = data.data.screenshot.url;
     }
 
     // Extract metadata from Microlink response
     const metadata: UrlMetadata = {
       title: data.data.title || null,
       description: data.data.description || null,
-      image: data.data.image?.url || data.data.logo?.url || null,
+      image: imageUrl,
       siteName: data.data.publisher || null,
     };
 
@@ -57,30 +87,98 @@ export async function fetchUrlMetadata(url: string): Promise<UrlMetadata | null>
 }
 
 /**
+ * Attempt to fetch HTML directly and parse Open Graph tags
+ * This is a fallback for when Microlink doesn't give good results
+ */
+async function fetchHtmlDirectly(url: string): Promise<UrlMetadata | null> {
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; GiftingApp/1.0)',
+      },
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const html = await response.text();
+    return parseHtmlMetadata(html, url);
+  } catch (error) {
+    // CORS or network error, this is expected
+    return null;
+  }
+}
+
+/**
+ * Check if an image URL is likely a logo
+ */
+function isLogoImage(url: string): boolean {
+  const lowerUrl = url.toLowerCase();
+  const logoPatterns = [
+    'logo',
+    'prime-logo',
+    'amazon-prime',
+    'brand',
+    'favicon',
+    'icon',
+    '/sprite',
+    'badge',
+    'avatar',
+  ];
+  return logoPatterns.some(pattern => lowerUrl.includes(pattern));
+}
+
+/**
+ * Check if image dimensions are too small (likely an icon)
+ */
+function isTooSmall(imageData: any): boolean {
+  if (!imageData.width || !imageData.height) {
+    return false; // Unknown size, allow it
+  }
+  // Filter out images smaller than 200x200
+  return imageData.width < 200 || imageData.height < 200;
+}
+
+/**
  * Parse HTML to extract Open Graph and meta tags
  */
 function parseHtmlMetadata(html: string, baseUrl: string): UrlMetadata {
   const metadata: UrlMetadata = {};
 
-  // Extract Open Graph image
+  // Extract Open Graph image (priority 1 - most reliable for products)
   const ogImage = extractMetaContent(html, 'property', 'og:image');
-  if (ogImage) {
+  if (ogImage && !isLogoImage(ogImage)) {
     metadata.image = resolveUrl(ogImage, baseUrl);
   }
 
   // Fallback to twitter:image
   if (!metadata.image) {
     const twitterImage = extractMetaContent(html, 'name', 'twitter:image');
-    if (twitterImage) {
+    if (twitterImage && !isLogoImage(twitterImage)) {
       metadata.image = resolveUrl(twitterImage, baseUrl);
     }
   }
 
-  // Fallback to first image in content
+  // For Amazon specifically, look for product images
+  if (!metadata.image && baseUrl.includes('amazon')) {
+    // Amazon product images often have this pattern
+    const amazonImgMatch = html.match(/https:\/\/[^"']*?images-na\.ssl-images-amazon\.com[^"']*?\.jpg/i);
+    if (amazonImgMatch) {
+      metadata.image = amazonImgMatch[0];
+    }
+  }
+
+  // Fallback to largest image in content
   if (!metadata.image) {
-    const imgMatch = html.match(/<img[^>]+src=["']([^"']+)["']/i);
-    if (imgMatch && imgMatch[1]) {
-      metadata.image = resolveUrl(imgMatch[1], baseUrl);
+    const imgMatches = html.matchAll(/<img[^>]+src=["']([^"']+)["'][^>]*>/gi);
+    for (const match of imgMatches) {
+      const imgSrc = match[1];
+      if (!isLogoImage(imgSrc)) {
+        metadata.image = resolveUrl(imgSrc, baseUrl);
+        break;
+      }
     }
   }
 
