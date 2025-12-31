@@ -1,19 +1,29 @@
 // useGiftMaps Hook - Custom hook for gift maps management
+import { useEffect } from 'react';
 import { useGiftMapsStore } from '../store/giftMapsStore';
 import { useAuth } from './useAuth';
 
 /**
  * Custom hook to manage gift maps state
+ * Automatically fetches all gift maps when user is authenticated
  */
 export const useGiftMaps = () => {
   const { user } = useAuth();
   const store = useGiftMapsStore();
+
+  // Fetch all gift maps when user is authenticated
+  useEffect(() => {
+    if (user?.uid) {
+      store.fetchAllGiftMaps(user.uid);
+    }
+  }, [user?.uid]);
 
   return {
     giftMaps: store.giftMaps,
     sharedGiftMap: store.sharedGiftMap,
     loading: store.loading,
     error: store.error,
+    fetchAllGiftMaps: () => user?.uid && store.fetchAllGiftMaps(user.uid),
     fetchGiftMap: (personId: string) =>
       user?.uid ? store.fetchGiftMap(user.uid, personId) : Promise.reject('No user'),
     createGiftMap: (personId: string, personName: string) =>

@@ -10,6 +10,7 @@ interface GiftMapsState {
   error: string | null;
 
   // Actions
+  fetchAllGiftMaps: (userId: string) => Promise<void>;
   fetchGiftMap: (userId: string, personId: string) => Promise<void>;
   createGiftMap: (userId: string, personId: string, personName: string) => Promise<void>;
   addItem: (userId: string, personId: string, item: CreateGiftMapItemInput) => Promise<void>;
@@ -28,6 +29,17 @@ export const useGiftMapsStore = create<GiftMapsState>((set, get) => ({
   sharedGiftMap: null,
   loading: false,
   error: null,
+
+  fetchAllGiftMaps: async (userId: string) => {
+    set({ loading: true, error: null });
+    try {
+      const giftMaps = await giftMapRepository.getAllGiftMaps(userId);
+      set({ giftMaps, loading: false });
+    } catch (error: any) {
+      set({ loading: false, error: error.message || 'Failed to fetch gift maps' });
+      throw error;
+    }
+  },
 
   fetchGiftMap: async (userId: string, personId: string) => {
     set({ loading: true, error: null });

@@ -1,5 +1,5 @@
 // Gift Map Repository - CRUD operations for gift maps with sharing
-import { doc, getDoc, setDoc, updateDoc, deleteDoc, Timestamp, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, deleteDoc, Timestamp, arrayUnion, arrayRemove, collection, getDocs } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import { GiftMap, GiftMapItem, SharedGiftMap, CreateGiftMapItemInput } from '../types/giftMap';
 import { COLLECTIONS } from '../utils/constants';
@@ -19,6 +19,21 @@ export class GiftMapRepository {
     }
 
     return this.fromFirestore(docSnap.data(), docSnap.id);
+  }
+
+  /**
+   * Get all gift maps for a user
+   */
+  async getAllGiftMaps(userId: string): Promise<Record<string, GiftMap>> {
+    const collectionRef = collection(db, COLLECTIONS.USERS, userId, COLLECTIONS.GIFT_MAPS);
+    const querySnapshot = await getDocs(collectionRef);
+
+    const giftMaps: Record<string, GiftMap> = {};
+    querySnapshot.forEach((doc) => {
+      giftMaps[doc.id] = this.fromFirestore(doc.data(), doc.id);
+    });
+
+    return giftMaps;
   }
 
   /**
