@@ -9,9 +9,8 @@ export interface UrlMetadata {
 }
 
 /**
- * Fetch metadata from a URL (Open Graph tags, meta tags)
- * Note: Direct fetching may have CORS issues on web. For production,
- * consider using a service like LinkPreview.net or a serverless function.
+ * Fetch metadata from a URL using Microlink API (free service)
+ * This avoids CORS issues by using a proxy service
  */
 export async function fetchUrlMetadata(url: string): Promise<UrlMetadata | null> {
   try {
@@ -21,23 +20,35 @@ export async function fetchUrlMetadata(url: string): Promise<UrlMetadata | null>
       return null;
     }
 
-    // Fetch HTML content
-    const response = await fetch(url, {
+    // Use Microlink API (free tier: 50 req/day)
+    const apiUrl = `https://api.microlink.io?url=${encodeURIComponent(url)}`;
+
+    const response = await fetch(apiUrl, {
       method: 'GET',
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; GiftingApp/1.0)',
+        'Accept': 'application/json',
       },
     });
 
     if (!response.ok) {
-      console.warn('Failed to fetch URL:', response.status);
+      console.warn('Failed to fetch URL metadata:', response.status);
       return null;
     }
 
-    const html = await response.text();
+    const data = await response.json();
 
-    // Parse metadata from HTML
-    const metadata = parseHtmlMetadata(html, url);
+    if (!data.status === 'success' || !data.data) {
+      return null;
+    }
+
+    // Extract metadata from Microlink response
+    const metadata: UrlMetadata = {
+      title: data.data.title || null,
+      description: data.data.description || null,
+      image: data.data.image?.url || data.data.logo?.url || null,
+      siteName: data.data.publisher || null,
+    };
+
     return metadata;
   } catch (error) {
     console.error('Error fetching URL metadata:', error);
