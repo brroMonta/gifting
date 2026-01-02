@@ -1,6 +1,6 @@
 # 🎁 Luxury Gifting App
 
-A sophisticated gift management application designed to help you track, organize, and remember gifts for the special people in your life. Built with React Native and Expo, featuring a luxury design inspired by Cartier, Rolex, and Tiffany's.
+A gift management application designed to help you track, organize, and remember gifts for the special people in your life. Built with React Native and Expo.
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![React Native](https://img.shields.io/badge/React_Native-0.72-blue.svg)
